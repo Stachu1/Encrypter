@@ -30,9 +30,9 @@ def encrypt_file(input_file, output_file, table, chunk_size=int(1e6)) -> None:
                 content = bytearray(in_f.read(chunk_size))
 
 
-def print_progress_bar(progress, total, time_start) -> None:
-    percent = 100 if progress >= total else 100 * (progress / total)
-    bar = "█" * int(percent) + "-" * ((100 - int(percent)))
+def print_progress_bar(progress, total, time_start, size=100) -> None:
+    percent = 1 if progress >= total else progress / total
+    bar = "█" * int(percent * size) + "-" * (100 - int(percent * size))
     time_total = time.time() - time_start
     if time_total >= 60:
         time_total = f"{int(time_total // 60)}m {(time_total % 60):.2f}s"
@@ -42,14 +42,14 @@ def print_progress_bar(progress, total, time_start) -> None:
     if percent == 0:
         time_left = "--"
     else:
-        time_left = (time.time() - time_start) / (percent / 100) - (time.time() - time_start)
+        time_left = (time.time() - time_start) / percent - (time.time() - time_start)
         if time_left >= 60:
             time_left = f"{int(time_left // 60)}m {(time_left % 60):.2f}s"
         else:
             time_left = f"{time_left:.2f}s"
-    print(f"{bar} {percent:.2f}%   t: {time_total}   eta: " + time_left, end="     \r")
+    print(f"{bar} {percent*100:.2f}%   t: {time_total}   eta: " + time_left, end="     \r")
     if progress == total: 
-        print(f"{Fore.GREEN}{bar} {percent:.2f}%   t: {time_total}   eta: --      {Fore.RESET}", end="\n")
+        print(f"{Fore.GREEN}{bar} {percent*100:.2f}%   t: {time_total}   eta: --      {Fore.RESET}", end="\n")
 
 
 def generate_table(seed) -> dict:
@@ -65,7 +65,7 @@ def generate_table(seed) -> dict:
 if __name__ == "__main__":
     if len(argv) < 4:
         print(f"{Fore.RED}ERROR: Not enough arguments!{Fore.RESET}\n")
-        print(f"Usage: \n    python {argv[0]} <filename> <encrypt/decrypt> <seed>\n")
+        print(f"Usage: \n    python {argv[0]} <filename> <encrypt/decrypt> <key>\n")
         
     else:
         file_name = argv[1]
@@ -77,15 +77,15 @@ if __name__ == "__main__":
         reverse_table = {v: k for k, v in table.items()}
         
         if mode == "encrypt" or mode == "enc":
-            print(f"{Fore.YELLOW}Encrypting:{Fore.RESET}")
+            print(f"\n{Fore.YELLOW}Encrypting:{Fore.RESET}")
             encrypt_file(file_name, f"{file_name}.encrypted", table)
             print(f"\n{Fore.GREEN}DONE!{Fore.RESET}")
             
         elif mode == "decrypt" or mode == "dec":
-            print(f"{Fore.MAGENTA}Decrypting:{Fore.RESET}")
+            print(f"\n{Fore.MAGENTA}Decrypting:{Fore.RESET}")
             encrypt_file(file_name, f"[DECRYPTED]{file_name.split('.encrypted')[0]}", reverse_table)
             print(f"\n{Fore.GREEN}DONE!{Fore.RESET}")
             
         else:
             print(f"{Fore.RED}ERROR: invalid mode!{Fore.RESET}\n")
-            print(f"Usage: \n    python {argv[0]} <filename> <encrypt/decrypt> <seed>\n")
+            print(f"Usage: \n    python {argv[0]} <filename> <encrypt/decrypt> <key>\n")
